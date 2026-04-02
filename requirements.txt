@@ -19,7 +19,7 @@ charset-normalizer==3.4.7
 chromadb==1.1.1
 click==8.1.8
 colorama==0.4.6
-crewai==0.11.2
+crewai
 cryptography==46.0.6
 deprecation==2.1.0
 diskcache==5.6.3
@@ -45,7 +45,6 @@ huggingface_hub==1.8.0
 idna==3.11
 importlib_metadata==8.7.1
 importlib_resources==6.5.2
-instructor==1.14.5
 Jinja2==3.1.6
 jiter==0.11.1
 json5==0.10.0
