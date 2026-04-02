@@ -2,10 +2,24 @@ import os
 import base64
 import requests
 from pathlib import Path
-from dotenv import load_dotenv
+try:
+    import streamlit as st
+    SECRETS = st.secrets
+except Exception:
+    from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env")
+    BASE_DIR = Path(__file__).resolve().parent
+    load_dotenv(BASE_DIR / ".env")
+    SECRETS = os.environ
+
+QBO_CLIENT_ID = SECRETS.get("QBO_CLIENT_ID")
+QBO_CLIENT_SECRET = SECRETS.get("QBO_CLIENT_SECRET")
+QBO_REDIRECT_URI = SECRETS.get("QBO_REDIRECT_URI")
+QBO_ENVIRONMENT = SECRETS.get("QBO_ENVIRONMENT", "production")
+QBO_REALM_ID = SECRETS.get("QBO_REALM_ID")
+
+QBO_ACCESS_TOKEN = SECRETS.get("QBO_ACCESS_TOKEN")
+QBO_REFRESH_TOKEN = SECRETS.get("QBO_REFRESH_TOKEN")
 
 TOKEN_URL = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
 
