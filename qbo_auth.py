@@ -5,14 +5,21 @@ from pathlib import Path
 
 try:
     import streamlit as st
-
-    IN_STREAMLIT = True
-    SECRETS = st.secrets
+    # Detecta se está em nuvem pelo env var padrão do Streamlit Cloud
+    IN_STREAMLIT_CLOUD = bool(os.getenv("STREAMLIT_RUNTIME"))
 except Exception:
+    st = None
+    IN_STREAMLIT_CLOUD = False
+
+BASE_DIR = Path(__file__).resolve().parent
+
+if IN_STREAMLIT_CLOUD:
+    # Nuvem: usa st.secrets
+    SECRETS = st.secrets
+else:
+    # Local / dev: usa .env
     from dotenv import load_dotenv
 
-    IN_STREAMLIT = False
-    BASE_DIR = Path(__file__).resolve().parent
     load_dotenv(BASE_DIR / ".env")
     SECRETS = os.environ
 
@@ -20,7 +27,6 @@ TOKEN_URL = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
 
 
 def _get_secret(key: str) -> str | None:
-    """Lê das secrets do Streamlit ou do .env/local."""
     if isinstance(SECRETS, dict):
         return SECRETS.get(key)
     return os.getenv(key)
@@ -37,11 +43,7 @@ def _basic_auth_header() -> str:
 
 
 def refresh_qbo_access_token() -> str:
-    """Usa o refresh_token atual para pegar um novo access_token.
-
-    Na nuvem (Streamlit): só atualiza em memória.
-    Local: opcionalmente persiste no .env.
-    """
+    """Usa o refresh_token atual para pegar um novo access_token."""
     refresh_token = _get_secret("QBO_REFRESH_TOKEN")
     if not refresh_token:
         raise ValueError("QBO_REFRESH_TOKEN nao definido nas secrets/.env")
@@ -64,20 +66,19 @@ def refresh_qbo_access_token() -> str:
         raise
 
     token_json = resp.json()
-
     new_access = token_json.get("access_token")
     new_refresh = token_json.get("refresh_token")
 
     if not new_access or not new_refresh:
         raise ValueError(f"Resposta invalida ao atualizar token: {token_json}")
 
-    # Atualiza em memória (vale para local e nuvem)
+    # Atualiza em memória
     os.environ["QBO_ACCESS_TOKEN"] = new_access
     os.environ["QBO_REFRESH_TOKEN"] = new_refresh
     print("QBO: token renovado (inicio):", new_access[:20])
 
-    # Só tenta escrever .env quando estiver rodando localmente
-    if not IN_STREAMLIT:
+    # Só tenta escrever .env quando estiver local
+    if not IN_STREAMLIT_CLOUD:
         env_path = BASE_DIR / ".env"
         if env_path.exists():
             text = env_path.read_text(encoding="utf-8")
