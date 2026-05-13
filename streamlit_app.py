@@ -55,13 +55,14 @@ config_cambio_page = st.Page(
 
 pg = st.navigation(
     [
+        config_cambio_page,
         resumo_page,
         chat_page,
         custo_import_caramelo_page,
         custo_import_bopp_page,
         calculadora_page,
         simulacao_pacotes_page,
-        config_cambio_page,
+        
     ]
 )
 
