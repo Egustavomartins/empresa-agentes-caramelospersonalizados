@@ -25,34 +25,37 @@ st.markdown(
 st.title("Custo de importacao dos caramelos")
 st.caption("Calculos considerando lote padrao de 2000 kg de caramelos.")
 
-API_URL = "https://economia.awesomeapi.com.br/json/last/USD-BRL,BRL-ARS,USD-ARS"
-
 @st.cache_data(ttl=300)
 def get_rates():
     try:
-        resp = requests.get(API_URL, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
+        # USD -> BRL
+        resp1 = requests.get(
+            "https://api.exchangerate.host/latest?base=USD&symbols=BRL",
+            timeout=10,
+        )
+        resp1.raise_for_status()
+        data1 = resp1.json()
+        usd_brl = float(data1["rates"]["BRL"])
 
-        usd_brl = float(data["USDBRL"]["bid"])   # 1 USD em BRL
-        brl_ars = float(data["BRLARS"]["bid"])  # 1 BRL em ARS
-        usd_ars = float(data["USDARS"]["bid"])  # 1 USD em ARS
+        # BRL -> ARS
+        resp2 = requests.get(
+            "https://api.exchangerate.host/latest?base=BRL&symbols=ARS",
+            timeout=10,
+        )
+        resp2.raise_for_status()
+        data2 = resp2.json()
+        brl_ars = float(data2["rates"]["ARS"])
 
+        usd_ars = usd_brl / brl_ars
         return usd_brl, brl_ars, usd_ars
 
     except requests.RequestException as e:
-        # erro HTTP, timeout, etc.
-        st.error(f"Erro ao buscar cotações ({API_URL}): {e}")
-        return None, None, None
-    except (KeyError, ValueError) as e:
-        # formato inesperado do JSON
-        st.error(f"Formato inesperado da API de cotações: {e}")
+        st.error(f"Erro ao buscar cotações (exchangerate.host): {e}")
         return None, None, None
 
 usd_brl, brl_ars, usd_ars = get_rates()
-
 if usd_brl is None:
-    st.stop()  # interrompe o resto da página se não tiver cotação
+    st.stop()
 
 # ---------------------------------------------------------
 # Parametros basicos e taxas de cambio
