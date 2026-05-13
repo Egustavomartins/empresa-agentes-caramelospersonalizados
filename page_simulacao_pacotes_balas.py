@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import requests
 
 st.set_page_config(page_title="Simulação pacotes de balas", layout="wide")
 
@@ -23,16 +22,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-@st.cache_data(ttl=300)
-def get_rates():
-    resp = requests.get(
-        "https://economia.awesomeapi.com.br/json/last/USD-BRL,BRL-ARS,USD-ARS"
-    )
-    data = resp.json()
-    brl_ars = float(data["BRLARS"]["bid"])  # 1 BRL em ARS
-    return brl_ars
+# ---------------------------------------------------------
+# Taxa BRL → ARS vinda da página "Configurar câmbio"
+# ---------------------------------------------------------
+if "brl_ars" not in st.session_state:
+    st.error("Configure primeiro as cotações em 'Configurar câmbio'.")
+    st.stop()
 
-brl_ars = get_rates()
+brl_ars = float(st.session_state.brl_ars)  # 1 BRL em ARS
 
 st.title("Simulação de combinações de pacotes de balas")
 st.caption("Ajuste os pacotes A e B e veja o faturamento e a quantidade total de balas.")
@@ -176,4 +173,3 @@ st.dataframe(
     use_container_width=True,
     hide_index=True,
 )
-
