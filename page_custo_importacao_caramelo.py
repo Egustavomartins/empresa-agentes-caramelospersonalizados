@@ -29,24 +29,30 @@ API_URL = "https://economia.awesomeapi.com.br/json/last/USD-BRL,BRL-ARS,USD-ARS"
 
 @st.cache_data(ttl=300)
 def get_rates():
-    resp = requests.get(API_URL, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()
-
-    # Debug opcional (pode habilitar só para testar na nuvem)
-    # st.write("DEBUG cotacao:", data)
-
     try:
+        resp = requests.get(API_URL, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+
         usd_brl = float(data["USDBRL"]["bid"])   # 1 USD em BRL
         brl_ars = float(data["BRLARS"]["bid"])  # 1 BRL em ARS
         usd_ars = float(data["USDARS"]["bid"])  # 1 USD em ARS
-    except KeyError:
-        # Evita quebrar o app com KeyError e mostra erro mais claro
-        raise RuntimeError(f"Formato inesperado da API de cotacoes: {data}")
 
-    return usd_brl, brl_ars, usd_ars
-    
+        return usd_brl, brl_ars, usd_ars
+
+    except requests.RequestException as e:
+        # erro HTTP, timeout, etc.
+        st.error(f"Erro ao buscar cotações ({API_URL}): {e}")
+        return None, None, None
+    except (KeyError, ValueError) as e:
+        # formato inesperado do JSON
+        st.error(f"Formato inesperado da API de cotações: {e}")
+        return None, None, None
+
 usd_brl, brl_ars, usd_ars = get_rates()
+
+if usd_brl is None:
+    st.stop()  # interrompe o resto da página se não tiver cotação
 
 # ---------------------------------------------------------
 # Parametros basicos e taxas de cambio
