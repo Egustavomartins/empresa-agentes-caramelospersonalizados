@@ -39,5 +39,5 @@ st.metric("USD → BRL", f"{st.session_state.usd_brl:.4f}")
 st.metric("BRL → ARS", f"{st.session_state.brl_ars:.4f}")
 st.metric(
     "USD → ARS (derivada)",
-    f"{(st.session_state.usd_brl / st.session_state.brl_ars):.4f}",
+    f"{(st.session_state.usd_brl * st.session_state.brl_ars):.4f}",
 )
