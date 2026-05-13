@@ -25,19 +25,27 @@ st.markdown(
 st.title("Custo de importacao dos caramelos")
 st.caption("Calculos considerando lote padrao de 2000 kg de caramelos.")
 
+API_URL = "https://economia.awesomeapi.com.br/json/last/USD-BRL,BRL-ARS,USD-ARS"
+
 @st.cache_data(ttl=300)
 def get_rates():
-    resp = requests.get(
-        "https://economia.awesomeapi.com.br/json/last/USD-BRL,BRL-ARS,USD-ARS"
-    )
+    resp = requests.get(API_URL, timeout=10)
+    resp.raise_for_status()
     data = resp.json()
 
-    usd_brl = float(data["USDBRL"]["bid"])      # 1 USD em BRL
-    brl_ars = float(data["BRLARS"]["bid"])     # 1 BRL em ARS
-    usd_ars = float(data["USDARS"]["bid"])     # 1 USD em ARS
+    # Debug opcional (pode habilitar só para testar na nuvem)
+    # st.write("DEBUG cotacao:", data)
+
+    try:
+        usd_brl = float(data["USDBRL"]["bid"])   # 1 USD em BRL
+        brl_ars = float(data["BRLARS"]["bid"])  # 1 BRL em ARS
+        usd_ars = float(data["USDARS"]["bid"])  # 1 USD em ARS
+    except KeyError:
+        # Evita quebrar o app com KeyError e mostra erro mais claro
+        raise RuntimeError(f"Formato inesperado da API de cotacoes: {data}")
 
     return usd_brl, brl_ars, usd_ars
-
+    
 usd_brl, brl_ars, usd_ars = get_rates()
 
 # ---------------------------------------------------------
