@@ -1,5 +1,4 @@
 import streamlit as st
-import requests
 
 st.set_page_config(page_title="Custo de importacao BOPP", layout="wide")
 
@@ -25,20 +24,16 @@ st.markdown(
 st.title("Custo de importacao do Filme BOPP fosco")
 st.caption("Calculos considerando lote padrao de 600 kg de filme BOPP fosco.")
 
-@st.cache_data(ttl=300)
-def get_rates():
-    resp = requests.get(
-        "https://economia.awesomeapi.com.br/json/last/USD-BRL,BRL-ARS,USD-ARS"
-    )
-    data = resp.json()
+# ---------------------------------------------------------
+# Taxas de câmbio vindas da página "Configurar câmbio"
+# ---------------------------------------------------------
+if "usd_brl" not in st.session_state or "brl_ars" not in st.session_state:
+    st.error("Configure primeiro as cotações em 'Configurar câmbio'.")
+    st.stop()
 
-    usd_brl = float(data["USDBRL"]["bid"])
-    brl_ars = float(data["BRLARS"]["bid"])
-    usd_ars = float(data["USDARS"]["bid"])
-
-    return usd_brl, brl_ars, usd_ars
-
-usd_brl, brl_ars, usd_ars = get_rates()
+usd_brl = float(st.session_state.usd_brl)   # 1 USD em BRL
+brl_ars = float(st.session_state.brl_ars)   # 1 BRL em ARS
+usd_ars = usd_brl * brl_ars                 # 1 USD em ARS
 
 # ---------------------------------------------------------
 # Parametros basicos e taxas de cambio
@@ -263,7 +258,7 @@ ganancias_usd = base_percep_usd * (aliquota_ganancias / 100.0)
 
 impostos_nao_recuperaveis_usd = imposto_prov_usd + valor_sim_usd
 impostos_recuperaveis_usd = iva_usd + iva_adicional_usd
-impostos_antecipados_ganancias_usd = ganancias_usd  # corrigido
+impostos_antecipados_ganancias_usd = ganancias_usd
 
 st.write(
     f"IVA ({aliquota_iva:.1f}% sobre base em aduana): **{iva_usd:,.2f} USD**"
