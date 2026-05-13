@@ -19,12 +19,18 @@ from qbo_utils import (
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(dotenv_path=str(BASE_DIR / ".env"))
 
-
 # --- LLM ---
+groq_model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+groq_api_key = os.getenv("GROQ_API_KEY")
+groq_base_url = os.getenv("GROQ_API_BASE_URL", "https://api.groq.com/openai/v1")
+
+if not groq_api_key:
+    raise RuntimeError("GROQ_API_KEY nao definido no ambiente/.env")
+
 llm = LLM(
-    model=os.getenv("GROQ_MODEL"),
-    base_url=os.getenv("GROQ_API_BASE_URL"),
-    api_key=os.getenv("GROQ_API_KEY"),
+    model=groq_model,
+    base_url=groq_base_url,
+    api_key=groq_api_key,
 )
 
 # =========================
