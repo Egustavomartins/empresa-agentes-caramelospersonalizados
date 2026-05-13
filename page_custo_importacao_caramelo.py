@@ -1,5 +1,4 @@
 import streamlit as st
-import requests
 
 st.set_page_config(page_title="Custo de importacao", layout="wide")
 
@@ -25,36 +24,17 @@ st.markdown(
 st.title("Custo de importacao dos caramelos")
 st.caption("Calculos considerando lote padrao de 2000 kg de caramelos.")
 
-API_URL = "https://economia.awesomeapi.com.br/json/last/USD-BRL,BRL-ARS,USD-ARS"
-
-@st.cache_data(ttl=600)  # cache de 10 min para reduzir chamadas
-def get_rates():
-    last_error = None
-
-    for attempt in range(3):
-        try:
-            resp = requests.get(API_URL, timeout=10)
-            # Se der 429 (limite), tenta de novo até 3x
-            if resp.status_code == 429 and attempt < 2:
-                continue
-            resp.raise_for_status()
-            data = resp.json()
-
-            usd_brl = float(data["USDBRL"]["bid"])   # 1 USD em BRL
-            brl_ars = float(data["BRLARS"]["bid"])  # 1 BRL em ARS
-            usd_ars = float(data["USDARS"]["bid"])  # 1 USD em ARS
-
-            return usd_brl, brl_ars, usd_ars
-
-        except requests.RequestException as e:
-            last_error = e
-
-    st.error(f"Erro ao buscar cotações ({API_URL}): {last_error}")
-    return None, None, None
-
-usd_brl, brl_ars, usd_ars = get_rates()
-if usd_brl is None:
+# ---------------------------------------------------------
+# Taxas de câmbio vindas da página "Configurar câmbio"
+# ---------------------------------------------------------
+if "usd_brl" not in st.session_state or "brl_ars" not in st.session_state:
+    st.error("Configure primeiro as cotações em 'Configurar câmbio'.")
     st.stop()
+
+usd_brl = float(st.session_state.usd_brl)   # 1 USD em BRL
+brl_ars = float(st.session_state.brl_ars)   # 1 BRL em ARS
+usd_ars = usd_brl / brl_ars if brl_ars > 0 else 0.0  # 1 USD em ARS
+
 # ---------------------------------------------------------
 # Parametros basicos e taxas de cambio
 # ---------------------------------------------------------
@@ -183,7 +163,7 @@ st.write(
 )
 
 # ---------------------------------------------------------
-# Flag MiPyME (com ou sem percepções extra)
+# Regime fiscal da importacao
 # ---------------------------------------------------------
 st.markdown("### Regime fiscal da importacao")
 
@@ -229,7 +209,6 @@ valor_sim_usd = st.number_input(
     help="Taxa SIM cobrada na importacao (valor padrao 10 USD).",
 )
 
-# INAL 0,5% sobre o valor da nota (usando CIP Foz como base)
 aliquota_inal = st.number_input(
     "INAL (% sobre valor da nota/CIP Foz)",
     min_value=0.0,
@@ -239,7 +218,6 @@ aliquota_inal = st.number_input(
     help="Taxa do Instituto Nacional de Alimentos (padrao 0,5% sobre o valor da nota).",
 )
 
-# Percepcoes adicionais (apenas se nao houver exclusao MiPyME)
 if mipymE_com_exclusao:
     aliquota_iva_adic = 0.0
     aliquota_ganancias = 0.0
@@ -261,7 +239,6 @@ else:
         help="Percepcao de Impuesto a las Ganancias na importacao (ex.: 6%).",
     )
 
-# Base para todas as percepcoes: CIP Foz
 base_percep_usd = cip_foz_usd
 
 iva_usd = base_percep_usd * (aliquota_iva / 100.0)
@@ -270,7 +247,6 @@ inal_usd = base_percep_usd * (aliquota_inal / 100.0)
 iva_adicional_usd = base_percep_usd * (aliquota_iva_adic / 100.0)
 ganancias_usd = base_percep_usd * (aliquota_ganancias / 100.0)
 
-# Separacao: nao recuperaveis x recuperaveis / antecipacao
 impostos_nao_recuperaveis_usd = imposto_prov_usd + valor_sim_usd + inal_usd
 impostos_recuperaveis_usd = iva_usd + iva_adicional_usd
 impostos_antecipados_ganancias_usd = ganancias_usd
@@ -331,7 +307,6 @@ st.markdown("### Conversao para reais e pesos")
 custo_base_usd = total_corrientes_usd
 total_sem_iva_usd = custo_base_usd + impostos_nao_recuperaveis_usd
 total_com_iva_usd = total_sem_iva_usd + impostos_recuperaveis_usd
-# Ganancias fica fora do custo, mas voce pode exibir separado depois se quiser
 
 total_sem_iva_brl = total_sem_iva_usd * taxa_brl_usd
 total_com_iva_brl = total_com_iva_usd * taxa_brl_usd
@@ -356,7 +331,6 @@ card_style = (
 
 col1, col2, col3 = st.columns(3)
 
-# Card 1: custo sem IVA
 total_sem_iva_brl_str = f"{total_sem_iva_brl:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 custo_sem_iva_por_kg_brl_str = f"{custo_sem_iva_por_kg_brl:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 custo_sem_iva_por_kg_ars_str = f"{custo_sem_iva_por_kg_ars:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -379,7 +353,6 @@ with col1:
         unsafe_allow_html=True,
     )
 
-# Card 2: custo com IVA
 total_com_iva_brl_str = f"{total_com_iva_brl:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 custo_com_iva_por_kg_brl_str = f"{custo_com_iva_por_kg_brl:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 custo_com_iva_por_kg_ars_str = f"{custo_com_iva_por_kg_ars:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -402,8 +375,6 @@ with col2:
         unsafe_allow_html=True,
     )
 
-# Card 3: lote padrão
-total_compra_str = total_str
 with col3:
     st.markdown(
         f"""
@@ -415,7 +386,7 @@ with col3:
                 2000 kg
             </div>
             <div style="color:#8FA3BF; font-size:12px; margin-top:6px;">
-                Total compra: R$ {total_compra_str}<br>
+                Total compra: R$ {total_str}<br>
                 Produtos: R$ {prod_str}<br>
                 Frete ate Foz: R$ {frete_str}
             </div>
@@ -424,7 +395,6 @@ with col3:
         unsafe_allow_html=True,
     )
 
-# Detalhamento em texto abaixo dos cards
 st.write(
     f"Custo total SEM IVA (com provincial + SIM + INAL): "
     f"**{total_sem_iva_usd:,.2f} USD**, "
