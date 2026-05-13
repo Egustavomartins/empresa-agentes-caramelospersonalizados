@@ -5,11 +5,11 @@ st.set_page_config(page_title="Configuração de câmbio", layout="wide")
 st.title("Configuração manual de câmbio")
 st.caption("Informe as cotações que serão usadas nos cálculos do sistema.")
 
-# Valores padrão (caso não existam ainda no session_state)
+# Valores padrão (caso não existam ainda)
 if "usd_brl" not in st.session_state:
-    st.session_state.usd_brl = 5.00  # chute inicial
+    st.session_state.usd_brl = 5.00
 if "brl_ars" not in st.session_state:
-    st.session_state.brl_ars = 200.0  # chute inicial
+    st.session_state.brl_ars = 200.0
 
 with st.form("form_cambio"):
     usd_brl = st.number_input(
@@ -37,4 +37,7 @@ if submitted:
 st.write("Cotação atual em uso:")
 st.metric("USD → BRL", f"{st.session_state.usd_brl:.4f}")
 st.metric("BRL → ARS", f"{st.session_state.brl_ars:.4f}")
-st.metric("USD → ARS (derivada)", f"{(st.session_state.usd_brl / st.session_state.brl_ars):.4f}")
+st.metric(
+    "USD → ARS (derivada)",
+    f"{(st.session_state.usd_brl / st.session_state.brl_ars):.4f}",
+)
