@@ -35,7 +35,6 @@ def get_rates():
         )
         resp1.raise_for_status()
         data1 = resp1.json()
-        usd_brl = float(data1["rates"]["BRL"])
 
         # BRL -> ARS
         resp2 = requests.get(
@@ -44,7 +43,13 @@ def get_rates():
         )
         resp2.raise_for_status()
         data2 = resp2.json()
-        brl_ars = float(data2["rates"]["ARS"])
+
+        try:
+            usd_brl = float(data1["rates"]["BRL"])
+            brl_ars = float(data2["rates"]["ARS"])
+        except KeyError as e:
+            st.error(f"Formato inesperado da API de cotações. data1={data1}, data2={data2}")
+            return None, None, None
 
         usd_ars = usd_brl / brl_ars
         return usd_brl, brl_ars, usd_ars
@@ -52,6 +57,7 @@ def get_rates():
     except requests.RequestException as e:
         st.error(f"Erro ao buscar cotações (exchangerate.host): {e}")
         return None, None, None
+
 
 usd_brl, brl_ars, usd_ars = get_rates()
 if usd_brl is None:
