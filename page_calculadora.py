@@ -1,5 +1,4 @@
 import streamlit as st
-import requests
 
 st.set_page_config(page_title="Calculadora cambial", layout="wide")
 
@@ -23,20 +22,18 @@ st.markdown(
 )
 
 st.title("Calculadora cambial")
-st.caption("Conversao rapida entre reais, dolares e pesos, usando cotacoes em tempo real.")
+st.caption("Conversao rapida entre reais, dolares e pesos, usando as cotacoes configuradas manualmente.")
 
-@st.cache_data(ttl=300)
-def get_rates():
-    resp = requests.get(
-        "https://economia.awesomeapi.com.br/json/last/USD-BRL,BRL-ARS,USD-ARS"
-    )
-    data = resp.json()
-    usd_brl = float(data["USDBRL"]["bid"])   # 1 USD em BRL
-    brl_ars = float(data["BRLARS"]["bid"])  # 1 BRL em ARS
-    usd_ars = float(data["USDARS"]["bid"])  # 1 USD em ARS
-    return usd_brl, brl_ars, usd_ars
+# ---------------------------------------------------------
+# Taxas de câmbio vindas da página "Configurar câmbio"
+# ---------------------------------------------------------
+if "usd_brl" not in st.session_state or "brl_ars" not in st.session_state:
+    st.error("Configure primeiro as cotações em 'Configurar câmbio'.")
+    st.stop()
 
-usd_brl, brl_ars, usd_ars = get_rates()
+usd_brl = float(st.session_state.usd_brl)   # 1 USD em BRL
+brl_ars = float(st.session_state.brl_ars)   # 1 BRL em ARS
+usd_ars = usd_brl * brl_ars                 # 1 USD em ARS
 
 card_style = (
     "background-color:#041728;"
