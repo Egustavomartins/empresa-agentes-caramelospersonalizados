@@ -33,7 +33,7 @@ if "usd_brl" not in st.session_state or "brl_ars" not in st.session_state:
 
 usd_brl = float(st.session_state.usd_brl)   # 1 USD em BRL
 brl_ars = float(st.session_state.brl_ars)   # 1 BRL em ARS
-usd_ars = usd_brl / brl_ars if brl_ars > 0 else 0.0  # 1 USD em ARS
+usd_ars = usd_brl * brl_ars if brl_ars > 0 else 0.0  # 1 USD em ARS
 
 # ---------------------------------------------------------
 # Parametros basicos e taxas de cambio
