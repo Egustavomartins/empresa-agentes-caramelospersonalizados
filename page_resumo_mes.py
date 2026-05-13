@@ -94,7 +94,7 @@ def main():
     st.markdown("### Custos fixos, folha e pro-labore (em pesos argentinos)")
 
     # taxa de cambio usada em todo o app
-    TAXA_BRL_ARS = 267.0  # ajuste se quiser
+    TAXA_BRL_ARS = 266.5  # alinhado com pagina de câmbio manual
 
     col_fix1, col_fix2, col_fix3 = st.columns(3)
 
@@ -458,4 +458,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
