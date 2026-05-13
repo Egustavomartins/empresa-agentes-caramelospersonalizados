@@ -11,28 +11,30 @@ if "usd_brl" not in st.session_state:
 if "brl_ars" not in st.session_state:
     st.session_state.brl_ars = 200.0
 
-with st.form("form_cambio"):
-    usd_brl = st.number_input(
-        "USD → BRL (1 USD em BRL)",
-        min_value=0.0,
-        value=float(st.session_state.usd_brl),
-        step=0.01,
-        format="%.4f",
-    )
-    brl_ars = st.number_input(
-        "BRL → ARS (1 BRL em ARS)",
-        min_value=0.0,
-        value=float(st.session_state.brl_ars),
-        step=0.1,
-        format="%.4f",
-    )
+# Inputs sempre começam com o valor atual em uso
+usd_brl_input = st.number_input(
+    "USD → BRL (1 USD em BRL)",
+    min_value=0.0,
+    value=float(st.session_state.usd_brl),
+    step=0.01,
+    format="%.4f",
+    key="usd_brl_input",
+)
+brl_ars_input = st.number_input(
+    "BRL → ARS (1 BRL em ARS)",
+    min_value=0.0,
+    value=float(st.session_state.brl_ars),
+    step=0.1,
+    format="%.4f",
+    key="brl_ars_input",
+)
 
-    submitted = st.form_submit_button("Salvar cotações")
+def salvar_cotacoes():
+    st.session_state.usd_brl = st.session_state.usd_brl_input
+    st.session_state.brl_ars = st.session_state.brl_ars_input
 
-if submitted:
-    st.session_state.usd_brl = usd_brl
-    st.session_state.brl_ars = brl_ars
-    st.success("Cotações atualizadas com sucesso!")
+# Botão pode ser clicado quantas vezes quiser
+st.button("Salvar cotações", on_click=salvar_cotacoes)
 
 st.write("Cotação atual em uso:")
 st.metric("USD → BRL", f"{st.session_state.usd_brl:.4f}")
