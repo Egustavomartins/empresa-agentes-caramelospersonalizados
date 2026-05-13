@@ -136,7 +136,7 @@ estoque_agent = Agent(
         "e sugerir acoes praticas para melhorar o giro e o custo."
     ),
     backstory=(
-        "Voce e um gestor de estoque que conhece bem producao de confeitaria, embalagens, BOPP e insumos. "
+        "Voce e um gestor de estoque que conhece bem producao de Empresa de Balas Personalizadas, embalagens, BOPP e insumos. "
         "Voce sempre pensa em custo, validade e impacto no fluxo de caixa."
     ),
     verbose=False,
@@ -159,10 +159,14 @@ coordenador = Agent(
     verbose=False,
 )
 
+# Detecta se deve desabilitar memória (útil na nuvem para evitar conflito com OpenAI embeddings)
+disable_memory = os.getenv("CREWAI_DISABLE_MEMORY", "false").lower() == "true"
+
 crew = Crew(
     agents=[coordenador, contabil_agent, estoque_agent],
     tasks=[],
     llm=llm,
+    memory=False if disable_memory else True,
 )
 
 
@@ -189,7 +193,7 @@ def perguntar_time(pergunta_usuario: str) -> str:
     numeros_permitidos = montar_numeros_permitidos(pergunta_usuario)
 
     descricao = (
-        "Voce e o coordenador do time (contador e gestor de estoque) da confeitaria do Gustavo.\n"
+        "Voce e o coordenador do time (contador e gestor de estoque) da Empresa de Balas Personalizadas do Gustavo.\n"
         "Abaixo estao alguns dados atualizados do QuickBooks (relatorio financeiro, ultima fatura e resumo de estoque):\n\n"
         f"[RESUMO FINANCEIRO]\n{resumo_qbo}\n\n"
         f"[ULTIMA FATURA]\n{resumo_fat}\n\n"
@@ -214,7 +218,7 @@ def perguntar_time(pergunta_usuario: str) -> str:
 
     task = Task(
         description=descricao,
-        expected_output="Resposta em portugues, em secoes, para o dono da confeitaria.",
+        expected_output="Resposta em portugues, em secoes, para o dono da Empresa de Balas Personalizadas.",
         agent=coordenador,
         verbose=False,
     )
